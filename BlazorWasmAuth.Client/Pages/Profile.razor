@@ -1,0 +1,26 @@
+﻿@page "/profile"
+
+@inject AuthService Auth
+
+<h3>اطلاعات کاربری</h3>
+
+@if (user == null)
+{
+    <p>در حال بارگذاری...</p>
+}
+else
+{
+    <ul>
+        <li><strong>شناسه:</strong> @user.UserId</li>
+        <li><strong>نام کاربری:</strong> @user.Username</li>
+    </ul>
+}
+
+@code {
+    UserInfoModel? user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await Auth.GetCurrentUserAsync();
+    }
+}

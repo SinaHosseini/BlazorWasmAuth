@@ -1,0 +1,54 @@
+﻿@page "/login"
+
+@inject HttpClient http
+@inject IJSRuntime JS
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label class="form-label">نام کاربری:</label>
+        <InputText @bind-Value="loginModel.UserName" class="form-control" />
+    </div>
+    <div>
+        <label class="form-label">رمز عبور:</label>
+        <InputText @bind-Value="loginModel.Password" type="password" class="form-control" />
+    </div>
+    <button class="btn btn-primary mt-3" type="submit">ورود</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(userInfo))
+{
+    <p style="color: green;">@userInfo</p>
+}
+
+@code {
+    private LoginModel loginModel = new();
+    private string? userInfo;
+
+    async Task HandleLogin()
+    {
+        var response = await http.PostAsJsonAsync("api/Auth/Login", loginModel);
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<LoginResult>();
+            await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result!.Token);
+            userInfo = $"خوش آمدید، {result.Username} \n (شناسه: {result.UserId})";
+            Nav.NavigateTo("/profile");
+        }
+        else
+        {
+            userInfo = "ورود ناموفق بود.";
+        }
+    }
+
+    public class LoginResult
+    {
+        public string Username { get; set; }
+        public int UserId { get; set; }
+        public string Token { get; set; }
+    }
+}
